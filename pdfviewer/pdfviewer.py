@@ -1,19 +1,33 @@
+""" pdfviewer"""
+
 import io
+import os
+from tkinter import (
+    LEFT,
+    RIGHT,
+    SUNKEN,
+    Frame,
+    Label,
+    Toplevel,
+    filedialog,
+    messagebox,
+    simpledialog,
+)
+
 import pdfplumber
 import PyPDF2
 import pytesseract
-from tkinter import *
-from tkinter import filedialog, simpledialog, messagebox
 from PIL import Image
 
-from pdfviewer.config import *
-from pdfviewer.hoverbutton import HoverButton
-from pdfviewer.helpbox import HelpBox
-from pdfviewer.menubox import MenuBox
+from pdfviewer.config import BACKGROUND_COLOR, HIGHLIGHT_COLOR, ROOT_PATH
 from pdfviewer.display_canvas import DisplayCanvas
+from pdfviewer.helpbox import HelpBox
+from pdfviewer.hoverbutton import HoverButton
+from pdfviewer.menubox import MenuBox
 
 
 class PDFViewer(Frame):
+    """PDFViewer class"""
 
     def __init__(self, master=None, **kw):
         Frame.__init__(self, master, **kw)
@@ -35,7 +49,9 @@ class PDFViewer(Frame):
         w = int(h / 1.414) + 100
         x = (ws / 2) - (w / 2)
         y = (hs / 2) - (h / 2)
-        self.master.geometry('%dx%d+%d+%d' % (w, h, x, y))
+        # noinspection PyUnresolvedReferences
+        self.master.geometry("%dx%d+%d+%d" % (w, h, x, y))
+        # noinspection PyUnresolvedReferences
         self.master.title("PDFViewer")
 
         self.master.rowconfigure(0, weight=0)
@@ -50,8 +66,8 @@ class PDFViewer(Frame):
         tool_frame = Frame(self, bg=BACKGROUND_COLOR, bd=0, relief=SUNKEN)
         pdf_frame = Frame(self, bg=BACKGROUND_COLOR, bd=0, relief=SUNKEN)
 
-        tool_frame.grid(row=0, column=0, sticky='news')
-        pdf_frame.grid(row=0, column=1, sticky='news')
+        tool_frame.grid(row=0, column=0, sticky="news")
+        pdf_frame.grid(row=0, column=1, sticky="news")
 
         # Tool Frame
         tool_frame.columnconfigure(0, weight=1)
@@ -60,37 +76,92 @@ class PDFViewer(Frame):
         tool_frame.rowconfigure(2, weight=0)
         tool_frame.rowconfigure(3, weight=2)
 
-        options = MenuBox(tool_frame, image_path=os.path.join(ROOT_PATH, 'widgets/options.png'))
+        options = MenuBox(tool_frame, image_path=os.path.join(ROOT_PATH, "widgets/options.png"))
         options.grid(row=0, column=0)
 
-        options.add_item('Open Files...', self._open_file)
-        options.add_item('Open Directory...', self._open_dir, seperator=True)
-        options.add_item('Next File', self._next_file)
-        options.add_item('Previous File', self._prev_file, seperator=True)
-        options.add_item('Help...', self._help, seperator=True)
-        options.add_item('Exit', self.master.quit)
+        options.add_item("Open Files...", self._open_file)
+        options.add_item("Open Directory...", self._open_dir, seperator=True)
+        options.add_item("Next File", self._next_file)
+        options.add_item("Previous File", self._prev_file, seperator=True)
+        options.add_item("Help...", self._help, seperator=True)
+        options.add_item("Exit", self.master.quit)
 
         tools = Frame(tool_frame, bg=BACKGROUND_COLOR, bd=0, relief=SUNKEN)
         tools.grid(row=2, column=0)
 
-        HoverButton(tools, image_path=os.path.join(ROOT_PATH, 'widgets/clear.png'), command=self._clear,
-                    width=50, height=50, bg=BACKGROUND_COLOR, bd=0, tool_tip="Clear",
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).pack(pady=2)
-        HoverButton(tools, image_path=os.path.join(ROOT_PATH, 'widgets/open_file.png'), command=self._open_file,
-                    width=50, height=50, bg=BACKGROUND_COLOR, bd=0, tool_tip="Open Files",
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).pack(pady=2)
-        HoverButton(tools, image_path=os.path.join(ROOT_PATH, 'widgets/open_dir.png'), command=self._open_dir,
-                    width=50, height=50, bg=BACKGROUND_COLOR, bd=0, tool_tip="Open Directory",
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).pack(pady=2)
-        HoverButton(tools, image_path=os.path.join(ROOT_PATH, 'widgets/search.png'), command=self._search_text,
-                    width=50, height=50, bg=BACKGROUND_COLOR, bd=0, tool_tip="Search Text",
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).pack(pady=2)
-        HoverButton(tools, image_path=os.path.join(ROOT_PATH, 'widgets/extract.png'), command=self._extract_text,
-                    width=50, height=50, bg=BACKGROUND_COLOR, bd=0, tool_tip="Extract Text", keep_pressed=True,
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).pack(pady=2)
-        HoverButton(tools, image_path=os.path.join(ROOT_PATH, 'widgets/ocr.png'), command=self._run_ocr,
-                    width=50, height=50, bg=BACKGROUND_COLOR, bd=0, tool_tip="Run OCR",
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).pack(pady=2)
+        HoverButton(
+            tools,
+            image_path=os.path.join(ROOT_PATH, "widgets/clear.png"),
+            command=self._clear,
+            width=50,
+            height=50,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            tool_tip="Clear",
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).pack(pady=2)
+        HoverButton(
+            tools,
+            image_path=os.path.join(ROOT_PATH, "widgets/open_file.png"),
+            command=self._open_file,
+            width=50,
+            height=50,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            tool_tip="Open Files",
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).pack(pady=2)
+        HoverButton(
+            tools,
+            image_path=os.path.join(ROOT_PATH, "widgets/open_dir.png"),
+            command=self._open_dir,
+            width=50,
+            height=50,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            tool_tip="Open Directory",
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).pack(pady=2)
+        HoverButton(
+            tools,
+            image_path=os.path.join(ROOT_PATH, "widgets/search.png"),
+            command=self._search_text,
+            width=50,
+            height=50,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            tool_tip="Search Text",
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).pack(pady=2)
+        HoverButton(
+            tools,
+            image_path=os.path.join(ROOT_PATH, "widgets/extract.png"),
+            command=self._extract_text,
+            width=50,
+            height=50,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            tool_tip="Extract Text",
+            keep_pressed=True,
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).pack(pady=2)
+        HoverButton(
+            tools,
+            image_path=os.path.join(ROOT_PATH, "widgets/ocr.png"),
+            command=self._run_ocr,
+            width=50,
+            height=50,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            tool_tip="Run OCR",
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).pack(pady=2)
 
         file_frame = Frame(tools, width=50, height=50, bg=BACKGROUND_COLOR, bd=0, relief=SUNKEN)
         file_frame.pack(pady=2)
@@ -98,16 +169,43 @@ class PDFViewer(Frame):
         file_frame.columnconfigure(0, weight=1)
         file_frame.columnconfigure(1, weight=1)
 
-        HoverButton(file_frame, image_path=os.path.join(ROOT_PATH, 'widgets/prev_file.png'), command=self._prev_file,
-                    width=25, height=50, bg=BACKGROUND_COLOR, bd=0, tool_tip="Previous File",
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).grid(row=0, column=0)
-        HoverButton(file_frame, image_path=os.path.join(ROOT_PATH, 'widgets/next_file.png'), command=self._next_file,
-                    width=25, height=50, bg=BACKGROUND_COLOR, bd=0, tool_tip="Next File",
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).grid(row=0, column=1)
+        HoverButton(
+            file_frame,
+            image_path=os.path.join(ROOT_PATH, "widgets/prev_file.png"),
+            command=self._prev_file,
+            width=25,
+            height=50,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            tool_tip="Previous File",
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).grid(row=0, column=0)
+        HoverButton(
+            file_frame,
+            image_path=os.path.join(ROOT_PATH, "widgets/next_file.png"),
+            command=self._next_file,
+            width=25,
+            height=50,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            tool_tip="Next File",
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).grid(row=0, column=1)
 
-        HoverButton(tool_frame, image_path=os.path.join(ROOT_PATH, 'widgets/help.png'), command=self._help,
-                    width=50, height=50, bg=BACKGROUND_COLOR, bd=0, tool_tip="Help",
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).grid(row=3, column=0, sticky='s')
+        HoverButton(
+            tool_frame,
+            image_path=os.path.join(ROOT_PATH, "widgets/help.png"),
+            command=self._help,
+            width=50,
+            height=50,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            tool_tip="Help",
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).grid(row=3, column=0, sticky="s")
 
         # PDF Frame
         pdf_frame.columnconfigure(0, weight=1)
@@ -115,7 +213,7 @@ class PDFViewer(Frame):
         pdf_frame.rowconfigure(1, weight=0)
 
         page_tools = Frame(pdf_frame, bg=BACKGROUND_COLOR, bd=0, relief=SUNKEN)
-        page_tools.grid(row=0, column=0, sticky='news')
+        page_tools.grid(row=0, column=0, sticky="news")
 
         page_tools.rowconfigure(0, weight=1)
         page_tools.columnconfigure(0, weight=1)
@@ -125,56 +223,117 @@ class PDFViewer(Frame):
         page_tools.columnconfigure(4, weight=1)
 
         nav_frame = Frame(page_tools, bg=BACKGROUND_COLOR, bd=0, relief=SUNKEN)
-        nav_frame.grid(row=0, column=1, sticky='ns')
+        nav_frame.grid(row=0, column=1, sticky="ns")
 
-        HoverButton(nav_frame, image_path=os.path.join(ROOT_PATH, 'widgets/first.png'),
-                    command=self._first_page, bg=BACKGROUND_COLOR, bd=0,
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).pack(side=LEFT, expand=True)
-        HoverButton(nav_frame, image_path=os.path.join(ROOT_PATH, 'widgets/prev.png'),
-                    command=self._prev_page, bg=BACKGROUND_COLOR, bd=0,
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).pack(side=LEFT, expand=True)
+        HoverButton(
+            nav_frame,
+            image_path=os.path.join(ROOT_PATH, "widgets/first.png"),
+            command=self._first_page,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).pack(side=LEFT, expand=True)
+        HoverButton(
+            nav_frame,
+            image_path=os.path.join(ROOT_PATH, "widgets/prev.png"),
+            command=self._prev_page,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).pack(side=LEFT, expand=True)
 
-        self.page_label = Label(nav_frame, bg=BACKGROUND_COLOR, bd=0, fg='white', font='Arial 8',
-                                text="Page {} of {}".format(self.pageidx, self.total_pages))
+        self.page_label = Label(
+            nav_frame,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            fg="white",
+            font="Arial 8",
+            text="Page {} of {}".format(self.pageidx, self.total_pages),
+        )
         self.page_label.pack(side=LEFT, expand=True)
 
-        HoverButton(nav_frame, image_path=os.path.join(ROOT_PATH, 'widgets/next.png'),
-                    command=self._next_page, bg=BACKGROUND_COLOR, bd=0,
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).pack(side=LEFT, expand=True)
-        HoverButton(nav_frame, image_path=os.path.join(ROOT_PATH, 'widgets/last.png'),
-                    command=self._last_page, bg=BACKGROUND_COLOR, bd=0,
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).pack(side=LEFT, expand=True)
+        HoverButton(
+            nav_frame,
+            image_path=os.path.join(ROOT_PATH, "widgets/next.png"),
+            command=self._next_page,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).pack(side=LEFT, expand=True)
+        HoverButton(
+            nav_frame,
+            image_path=os.path.join(ROOT_PATH, "widgets/last.png"),
+            command=self._last_page,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).pack(side=LEFT, expand=True)
 
         zoom_frame = Frame(page_tools, bg=BACKGROUND_COLOR, bd=0, relief=SUNKEN)
-        zoom_frame.grid(row=0, column=3, sticky='ns')
+        zoom_frame.grid(row=0, column=3, sticky="ns")
 
-        HoverButton(zoom_frame, image_path=os.path.join(ROOT_PATH, 'widgets/rotate.png'),
-                    command=self._rotate, bg=BACKGROUND_COLOR, bd=0,
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).pack(side=RIGHT, expand=True)
-        HoverButton(zoom_frame, image_path=os.path.join(ROOT_PATH, 'widgets/fullscreen.png'),
-                    command=self._fit_to_screen, bg=BACKGROUND_COLOR, bd=0,
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).pack(side=RIGHT, expand=True)
+        HoverButton(
+            zoom_frame,
+            image_path=os.path.join(ROOT_PATH, "widgets/rotate.png"),
+            command=self._rotate,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).pack(side=RIGHT, expand=True)
+        HoverButton(
+            zoom_frame,
+            image_path=os.path.join(ROOT_PATH, "widgets/fullscreen.png"),
+            command=self._fit_to_screen,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).pack(side=RIGHT, expand=True)
 
-        self.zoom_label = Label(zoom_frame, bg=BACKGROUND_COLOR, bd=0, fg='white', font='Arial 8',
-                                text="Zoom {}%".format(int(self.scale * 100)))
+        self.zoom_label = Label(
+            zoom_frame,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            fg="white",
+            font="Arial 8",
+            text="Zoom {}%".format(int(self.scale * 100)),
+        )
         self.zoom_label.pack(side=RIGHT, expand=True)
 
-        HoverButton(zoom_frame, image_path=os.path.join(ROOT_PATH, 'widgets/zoomout.png'),
-                    command=self._zoom_out, bg=BACKGROUND_COLOR, bd=0,
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).pack(side=RIGHT, expand=True)
-        HoverButton(zoom_frame, image_path=os.path.join(ROOT_PATH, 'widgets/zoomin.png'),
-                    command=self._zoom_in, bg=BACKGROUND_COLOR, bd=0,
-                    highlightthickness=0, activebackground=HIGHLIGHT_COLOR).pack(side=RIGHT, expand=True)
+        HoverButton(
+            zoom_frame,
+            image_path=os.path.join(ROOT_PATH, "widgets/zoomout.png"),
+            command=self._zoom_out,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).pack(side=RIGHT, expand=True)
+        HoverButton(
+            zoom_frame,
+            image_path=os.path.join(ROOT_PATH, "widgets/zoomin.png"),
+            command=self._zoom_in,
+            bg=BACKGROUND_COLOR,
+            bd=0,
+            highlightthickness=0,
+            activebackground=HIGHLIGHT_COLOR,
+        ).pack(side=RIGHT, expand=True)
 
         canvas_frame = Frame(pdf_frame, bg=BACKGROUND_COLOR, bd=1, relief=SUNKEN)
-        canvas_frame.grid(row=1, column=0, sticky='news')
+        canvas_frame.grid(row=1, column=0, sticky="news")
 
-        self.canvas = DisplayCanvas(canvas_frame, page_height=h-42, page_width=w-70)
+        self.canvas = DisplayCanvas(canvas_frame, page_height=h - 42, page_width=w - 70)
         self.canvas.pack()
 
-        self.grid(row=0, column=0, sticky='news')
-
+        self.grid(row=0, column=0, sticky="news")
+        # noinspection PyUnresolvedReferences
         self.master.minsize(height=h, width=w)
+        # noinspection PyUnresolvedReferences
         self.master.maxsize(height=h, width=w)
 
     def _reject(self):
@@ -198,6 +357,7 @@ class PDFViewer(Frame):
         self.rotate = 0
         self.page_label.configure(text="Page {} of {}".format(self.pageidx, self.total_pages))
         self.zoom_label.configure(text="Zoom {}%".format(int(self.scale * 100)))
+        # noinspection PyUnresolvedReferences
         self.master.title("PDFViewer")
 
     def _clear(self):
@@ -297,12 +457,12 @@ class PDFViewer(Frame):
     def _search_text(self):
         if self.pdf is None:
             return
-        text = simpledialog.askstring('Search Text', 'Enter text to search:')
-        if text == '' or text is None:
+        text = simpledialog.askstring("Search Text", "Enter text to search:")
+        if text == "" or text is None:
             return
         page = self.pdf.pages[self.pageidx - 1]
         image = page.to_image(resolution=int(self.scale * 80))
-        words = [w for w in page.extract_words() if text.lower() in w['text'].lower()]
+        words = [w for w in page.extract_words() if text.lower() in w["text"].lower()]
         image.draw_rects(words)
         image = image.annotated.rotate(self.rotate)
         self.canvas.update_image(image)
@@ -312,10 +472,10 @@ class PDFViewer(Frame):
             return
         if not self.canvas.draw:
             self.canvas.draw = True
-            self.canvas.configure(cursor='cross')
+            self.canvas.configure(cursor="cross")
             return
         self.canvas.draw = False
-        self.canvas.configure(cursor='')
+        self.canvas.configure(cursor="")
         rect = self.canvas.get_rect()
         if rect is None:
             return
@@ -326,8 +486,12 @@ class PDFViewer(Frame):
         min_x = 1000000
         r = None
         for word in words:
-            diff = abs(float(word['x0'] - rect[0])) + abs(float(word['top'] - rect[1])) \
-                   + abs(float(word['x1'] - rect[2])) + abs(float(word['bottom'] - rect[3]))
+            diff = (
+                abs(float(word["x0"] - rect[0]))
+                + abs(float(word["top"] - rect[1]))
+                + abs(float(word["x1"] - rect[2]))
+                + abs(float(word["bottom"] - rect[3]))
+            )
             if diff < min_x:
                 min_x = diff
                 r = word
@@ -335,7 +499,7 @@ class PDFViewer(Frame):
         image.draw_rect(r)
         image = image.annotated.rotate(self.rotate)
         self.canvas.update_image(image)
-        simpledialog.askstring("Extract Text", "Text Extracted:", initialvalue=r['text'])
+        simpledialog.askstring("Extract Text", "Text Extracted:", initialvalue=r["text"])
 
     def _reproject_bbox(self, bbox):
         bbox = [self.page.decimalize(x) for x in bbox]
@@ -354,7 +518,7 @@ class PDFViewer(Frame):
         pdf_pages = list()
         for page in self.pdf.pages:
             image = page.to_image(resolution=100)
-            pdf = pytesseract.image_to_pdf_or_hocr(image.original, extension='pdf')
+            pdf = pytesseract.image_to_pdf_or_hocr(image.original, extension="pdf")
             pdf_pages.append(pdf)
 
         pdf_writer = PyPDF2.PdfFileWriter()
@@ -365,13 +529,17 @@ class PDFViewer(Frame):
         dirname = os.path.dirname(self.paths[self.pathidx])
         filename = os.path.basename(self.paths[self.pathidx])
 
-        path = filedialog.asksaveasfilename(title='Save OCR As', defaultextension='.pdf',
-                                            initialdir=dirname, initialfile=filename,
-                                            filetypes=[('PDF files', '*.pdf'), ('all files', '.*')])
-        if path == '' or path is None:
+        path = filedialog.asksaveasfilename(
+            title="Save OCR As",
+            defaultextension=".pdf",
+            initialdir=dirname,
+            initialfile=filename,
+            filetypes=[("PDF files", "*.pdf"), ("all files", ".*")],
+        )
+        if path == "" or path is None:
             return
 
-        with open(path, 'wb') as out:
+        with open(path, "wb") as out:
             pdf_writer.write(out)
 
         self.paths[self.pathidx] = path
@@ -380,17 +548,21 @@ class PDFViewer(Frame):
     @staticmethod
     def _image_to_pdf(path):
         image = Image.open(path)
-        pdf = pytesseract.image_to_pdf_or_hocr(image, extension='pdf')
+        pdf = pytesseract.image_to_pdf_or_hocr(image, extension="pdf")
 
-        filename = '.'.join(os.path.basename(path).split('.')[:-1]) + '.pdf'
+        filename = ".".join(os.path.basename(path).split(".")[:-1]) + ".pdf"
         dirname = os.path.dirname(path)
 
-        path = filedialog.asksaveasfilename(title='Save Converted PDF As', defaultextension='.pdf',
-                                            initialdir=dirname, initialfile=filename,
-                                            filetypes=[('PDF files', '*.pdf'), ('all files', '.*')])
-        if path == '' or path is None:
+        path = filedialog.asksaveasfilename(
+            title="Save Converted PDF As",
+            defaultextension=".pdf",
+            initialdir=dirname,
+            initialfile=filename,
+            filetypes=[("PDF files", "*.pdf"), ("all files", ".*")],
+        )
+        if path == "" or path is None:
             return
-        with open(path, 'wb') as out:
+        with open(path, "wb") as out:
             out.write(pdf)
         return path
 
@@ -398,7 +570,7 @@ class PDFViewer(Frame):
         self._clear()
         path = self.paths[self.pathidx]
         filename = os.path.basename(path)
-        if filename.split('.')[-1].lower() in ['jpg', 'png']:
+        if filename.split(".")[-1].lower() in ["jpg", "png"]:
             path = self._image_to_pdf(path)
         try:
             self.pdf = pdfplumber.open(path)
@@ -407,32 +579,47 @@ class PDFViewer(Frame):
             self.scale = 1.0
             self.rotate = 0
             self._update_page()
+            # noinspection PyUnresolvedReferences
             self.master.title("PDFViewer : {}".format(path))
         except (IndexError, IOError, TypeError):
             self._reject()
 
     def _open_file(self):
-        paths = filedialog.askopenfilenames(filetypes=[('PDF files', '*.pdf'),
-                                                       ('JPG files', '*.jpg'),
-                                                       ('PNG files', '*.png'),
-                                                       ('all files', '.*')],
-                                            initialdir=os.getcwd(),
-                                            title="Select files", multiple=True)
-        if not paths or paths == '':
+        paths = filedialog.askopenfilenames(
+            filetypes=[
+                ("PDF files", "*.pdf"),
+                ("JPG files", "*.jpg"),
+                ("PNG files", "*.png"),
+                ("all files", ".*"),
+            ],
+            initialdir=os.getcwd(),
+            title="Select files",
+            # multiple=True, (did nothing and caused an error in PyCharm)
+        )
+        if not paths or paths == "":
             return
-        paths = [path for path in paths if os.path.basename(path).split('.')[-1].lower() in ['pdf', 'jpg', 'png']]
-        self.paths = self.paths[:self.pathidx + 1] + list(paths) + self.paths[self.pathidx + 1:]
+        paths = [
+            path
+            for path in paths
+            if os.path.basename(path).split(".")[-1].lower() in ["pdf", "jpg", "png"]
+        ]
+        self.paths = self.paths[: self.pathidx + 1] + list(paths) + self.paths[self.pathidx + 1 :]
         self.total_pages = len(self.paths)
         self.pathidx += 1
         self._load_file()
 
     def _open_dir(self):
-        dir_name = filedialog.askdirectory(initialdir=os.getcwd(), title="Select Directory Containing Invoices")
-        if not dir_name or dir_name == '':
+        dir_name = filedialog.askdirectory(
+            initialdir=os.getcwd(), title="Select Directory Containing Invoices"
+        )
+        if not dir_name or dir_name == "":
             return
         paths = os.listdir(dir_name)
-        paths = [os.path.join(dir_name, path) for path in paths
-                 if os.path.basename(path).split('.')[-1].lower() in ['pdf', 'jpg', 'png']]
+        paths = [
+            os.path.join(dir_name, path)
+            for path in paths
+            if os.path.basename(path).split(".")[-1].lower() in ["pdf", "jpg", "png"]
+        ]
         self.paths.extend(paths)
         if not self.paths:
             return
@@ -449,9 +636,11 @@ class PDFViewer(Frame):
         help_frame = Toplevel(self)
         help_frame.title("Help")
         help_frame.configure(width=w, height=h, bg=BACKGROUND_COLOR, relief=SUNKEN)
-        help_frame.geometry('%dx%d+%d+%d' % (w, h, x, y))
+        help_frame.geometry("%dx%d+%d+%d" % (w, h, x, y))
         help_frame.minsize(height=h, width=w)
         help_frame.maxsize(height=h, width=w)
         help_frame.rowconfigure(0, weight=1)
         help_frame.columnconfigure(0, weight=1)
-        HelpBox(help_frame, width=w, height=h, bg=BACKGROUND_COLOR, relief=SUNKEN).grid(row=0, column=0)
+        HelpBox(help_frame, width=w, height=h, bg=BACKGROUND_COLOR, relief=SUNKEN).grid(
+            row=0, column=0
+        )

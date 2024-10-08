@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "pdfviewer"
+version = "0.1.0"
+description = "PDFViewer is a GUI tool, written using python3 and tkinter, which lets you view PDF documents."
+authors = ["Your Name <you@example.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [
+   { include = "pdfviewer", from = "." },
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pdfplumber = "^0.10.4"
+pypdf2 = "^3.0.1"
+pytesseract = "^0.3.10"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.2.0"
+isort = "^5.13.2"
+pylint = "^3.0.3"
+setuptools = "^69.1.0"
+pre-commit = "^3.6.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line_length = 100
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
